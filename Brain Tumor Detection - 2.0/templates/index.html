@@ -1,0 +1,83 @@
+{% extends "import.html" %}
+{% block content %}
+
+<center>
+    <br>
+    <h2>Brain Tumor Image Analysis</h2>
+    <h2>Made by Vikash Kumar</h2><br>
+
+    <!-- Display Training and Validation Accuracy -->
+    {% if training_accuracy is not none and validation_accuracy is not none %}
+    <p>Training Accuracy: {{ '%.2f' % training_accuracy }}%</p>
+    <p>Validation Accuracy: {{ '%.2f' % validation_accuracy }}%</p><br>
+    {% endif %}
+
+    <!-- Display accuracy for other machine learning algorithms -->
+    <h3>Training and validation accuracy.</h3>
+    <p>Accuracy (KNN): {{ knn_accuracy }}%</p>
+    <p>Accuracy (Naive Bayes): {{ naiveb_accuracy }}%</p>
+    <p>Accuracy (Decision Tree): {{ decision_tree_accuracy }}%</p>
+    
+
+    <!-- File Upload Form -->
+    <form id="upload-file" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" class="btn btn-success" id="imageUpload" accept=".png, .jpg, .jpeg">
+    </form>
+
+    <!-- Image Preview and Predict Button -->
+    <div class="image-section" style="display:none;">
+        <img id="imagePreview" class="img-responsive" src="#" style="width:300px;height:300px;" /><br><br>
+        <div>
+            <button type="button" class="btn btn-info btn-lg" id="btn-predict">Predict!</button>
+        </div>
+    </div>
+
+    <!-- Loader -->
+    <div class="loader" style="display:none;"></div>
+
+    <!-- Prediction Result -->
+    <h3 id="result"><span></span></h3>
+</center><br><br>
+
+<!-- JavaScript for handling form submission and displaying results -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        // Show image preview when a file is selected
+        $('#imageUpload').change(function () {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $('#imagePreview').attr('src', e.target.result);
+                $('.image-section').show();
+            };
+            reader.readAsDataURL(this.files[0]);
+        });
+
+        // Handle Predict button click
+        $('#btn-predict').click(function () {
+            var form_data = new FormData($('#upload-file')[0]);
+
+            // Show loader
+            $(this).hide();
+            $('.loader').show();
+
+            // Make prediction by calling the /predict endpoint
+            $.ajax({
+                type: 'POST',
+                url: '/predict',
+                data: form_data,
+                contentType: false,
+                cache: false,
+                processData: false,
+                async: true,
+                success: function (result) {
+                    $('.loader').hide();
+                    $('#btn-predict').show();
+                    $('#result span').html(result);
+                    $('#result').fadeIn(600);
+                },
+            });
+        });
+    });
+</script>
+{% endblock %}
